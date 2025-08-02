@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Andrea vs Max Tic-Tac-Toe</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #1a252f 0%, #2c3e50 100%);
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            display: flex;
+            width: 100vw;
+            height: 100vh;
+            padding: 20px;
+            gap: 20px;
+        }
+
+        .game-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: rgba(44, 62, 80, 0.8);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+        }
+
+        .game-title {
+            color: #ecf0f1;
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .current-player {
+            color: #ecf0f1;
+            font-size: 1.5rem;
+            margin-bottom: 30px;
+            padding: 10px 20px;
+            background: rgba(52, 73, 94, 0.8);
+            border-radius: 25px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .game-board {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(3, 1fr);
+            gap: 10px;
+            background: #34495e;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: inset 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .cell {
+            width: 150px;
+            height: 150px;
+            background: #ecf0f1;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cell:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+            background: #bdc3c7;
+        }
+
+        .cell.andrea {
+            background: linear-gradient(135deg, #ffebee 0%, #fce4ec 100%);
+        }
+
+        .cell.max {
+            background: linear-gradient(135deg, #e3f2fd 0%, #e1f5fe 100%);
+        }
+
+        .cell img {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .sidebar {
+            width: 350px;
+            background: rgba(52, 73, 94, 0.9);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+
+        .sidebar h2 {
+            color: #ecf0f1;
+            font-size: 1.8rem;
+            text-align: center;
+            margin-bottom: 20px;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+        }
+
+        .player-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px;
+            background: rgba(44, 62, 80, 0.6);
+            border-radius: 10px;
+            margin-bottom: 10px;
+        }
+
+        .player-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid #ecf0f1;
+        }
+
+        .player-details {
+            flex: 1;
+        }
+
+        .player-name {
+            color: #ecf0f1;
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .player-score {
+            color: #bdc3c7;
+            font-size: 1rem;
+        }
+
+        .ties-info {
+            text-align: center;
+            padding: 15px;
+            background: rgba(44, 62, 80, 0.6);
+            border-radius: 10px;
+            color: #ecf0f1;
+            font-size: 1.1rem;
+        }
+
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .btn {
+            padding: 15px 25px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(231, 76, 60, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(231, 76, 60, 0.6);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.4);
+        }
+
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(52, 152, 219, 0.6);
+        }
+
+        .game-stats {
+            background: rgba(44, 62, 80, 0.6);
+            border-radius: 10px;
+            padding: 20px;
+        }
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(189, 195, 199, 0.2);
+            color: #ecf0f1;
+        }
+
+        .stat-item:last-child {
+            border-bottom: none;
+        }
+
+        .stat-label {
+            font-weight: bold;
+        }
+
+        .stat-value {
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        .winner-animation {
+            animation: bounce 0.6s ease-in-out;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 60%, 100% {
+                transform: translateY(0);
+            }
+            40% {
+                transform: translateY(-10px);
+            }
+            80% {
+                transform: translateY(-5px);
+            }
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+            color: #ecf0f1;
+        }
+
+        .modal h3 {
+            font-size: 2rem;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="game-area">
+            <h1 class="game-title">Ryan vs Cecilia</h1>
+            <div class="current-player" id="currentPlayer">
+                <span id="playerIcon">🔴</span>
+                <span id="playerText">Ryan's Turn</span>
+            </div>
+            <div class="game-board" id="gameBoard">
+                <button class="cell" data-index="0"></button>
+                <button class="cell" data-index="1"></button>
+                <button class="cell" data-index="2"></button>
+                <button class="cell" data-index="3"></button>
+                <button class="cell" data-index="4"></button>
+                <button class="cell" data-index="5"></button>
+                <button class="cell" data-index="6"></button>
+                <button class="cell" data-index="7"></button>
+                <button class="cell" data-index="8"></button>
+            </div>
+        </div>
+
+        <div class="sidebar">
+            <h2>🏆 Scoreboard</h2>
+            
+            <div class="player-info">
+                <img src="Ryan.png" alt="Ryan" class="player-avatar" style="width: 60px; height: 60px; border-radius: 50%; object-fit: cover; border: 3px solid #ecf0f1;">
+                <div class="player-details">
+                    <div class="player-name">Ryan</div>
+                    <div class="player-score">Wins: <span id="ryanScore">0</span></div>
+                </div>
+            </div>
+
+            <div class="player-info">
+                <img src="Cecilia.png" alt="Cecilia" class="player-avatar" style="width: 60px; height: 60px; border-radius: 50%; object-fit: cover; border: 3px solid #ecf0f1;">
+                <div class="player-details">
+                    <div class="player-name">Cecilia</div>
+                    <div class="player-score">Wins: <span id="ceciliaScore">0</span></div>
+                </div>
+            </div>
+
+            <div class="ties-info">
+                Ties: <span id="tiesScore">0</span>
+            </div>
+
+            <div class="game-stats">
+                <h3 style="color: #ecf0f1; margin-bottom: 15px; text-align: center;">Game Statistics</h3>
+                <div class="stat-item">
+                    <span class="stat-label">Total Games:</span>
+                    <span class="stat-value" id="totalGames">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Ryan Win Rate:</span>
+                    <span class="stat-value" id="andreaWinRate">0%</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Cecilia Win Rate:</span>
+                    <span class="stat-value" id="maxWinRate">0%</span>
+                </div>
+            </div>
+
+            <div class="controls">
+                <button class="btn btn-primary" onclick="newGame()">🎮 New Game</button>
+                <button class="btn btn-secondary" onclick="resetScore()">🔄 Reset Score</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Game Over Modal -->
+    <div id="gameOverModal" class="modal">
+        <div class="modal-content">
+            <h3 id="gameOverMessage"></h3>
+            <button class="btn btn-primary" onclick="closeModal()">Continue</button>
+        </div>
+    </div>
+
+    <script>
+        // Game state
+        let currentPlayer = 'Ryan';
+        let board = Array(9).fill(null);
+        let gameActive = true;
+        let scores = {
+            Ryan: 0,
+            Cecilia: 0,
+            Ties: 0
+        };
+
+        // Load scores from localStorage
+        function loadScores() {
+            const savedScores = localStorage.getItem('ticTacToeScores');
+            if (savedScores) {
+                scores = JSON.parse(savedScores);
+                updateScoreDisplay();
+            }
+        }
+
+        // Save scores to localStorage
+        function saveScores() {
+            localStorage.setItem('ticTacToeScores', JSON.stringify(scores));
+        }
+
+        // Winning combinations
+        const winConditions = [
+            [0, 1, 2], [3, 4, 5], [6, 7, 8], // rows
+            [0, 3, 6], [1, 4, 7], [2, 5, 8], // columns
+            [0, 4, 8], [2, 4, 6] // diagonals
+        ];
+
+        // Initialize game
+        function initGame() {
+            const cells = document.querySelectorAll('.cell');
+            cells.forEach(cell => {
+                cell.addEventListener('click', handleCellClick);
+            });
+            loadScores();
+            updatePlayerDisplay();
+        }
+
+        // Handle cell click
+        function handleCellClick(e) {
+            const index = parseInt(e.target.dataset.index);
+            
+            if (board[index] !== null || !gameActive) {
+                return;
+            }
+
+            // Make move
+            board[index] = currentPlayer;
+            
+            // Create image element
+            const img = document.createElement('img');
+            img.src = currentPlayer === 'Ryan' ? 'Ryan.png' : 'Cecilia.png';
+            img.alt = currentPlayer;
+            img.style.width = '120px';
+            img.style.height = '120px';
+            img.style.borderRadius = '50%';
+            img.style.objectFit = 'cover';
+            img.style.border = '3px solid rgba(255, 255, 255, 0.8)';
+            img.style.boxShadow = '0 4px 10px rgba(0, 0, 0, 0.3)';
+            
+            // Clear cell and add image
+            e.target.innerHTML = '';
+            e.target.appendChild(img);
+            e.target.classList.add(currentPlayer.toLowerCase());
+            
+            // Add winner animation
+            e.target.classList.add('winner-animation');
+            setTimeout(() => e.target.classList.remove('winner-animation'), 600);
+
+            // Check for win or tie
+            if (checkWinner()) {
+                gameActive = false;
+                scores[currentPlayer]++;
+                saveScores();
+                updateScoreDisplay();
+                showGameOverModal(`🎉 ${currentPlayer} Wins! 🎉`);
+                return;
+            }
+
+            if (board.every(cell => cell !== null)) {
+                gameActive = false;
+                scores.Ties++;
+                saveScores();
+                updateScoreDisplay();
+                showGameOverModal('🤝 It\'s a Tie! 🤝');
+                return;
+            }
+
+            // Switch player
+            currentPlayer = currentPlayer === 'Ryan' ? 'Cecilia' : 'Ryan';
+            updatePlayerDisplay();
+        }
+
+        // Check for winner
+        function checkWinner() {
+            return winConditions.some(condition => {
+                const [a, b, c] = condition;
+                return board[a] && board[a] === board[b] && board[a] === board[c];
+            });
+        }
+
+        // Update player display
+        function updatePlayerDisplay() {
+            const playerIcon = document.getElementById('playerIcon');
+            const playerText = document.getElementById('playerText');
+            
+            if (currentPlayer === 'Ryan') {
+                playerIcon.textContent = '🔴';
+                playerText.textContent = 'Ryan\'s Turn';
+                playerText.style.color = '#e74c3c';
+            } else {
+                playerIcon.textContent = '🔵';
+                playerText.textContent = 'Cecilia\'s Turn';
+                playerText.style.color = '#3498db';
+            }
+        }
+
+        // Update score display
+        function updateScoreDisplay() {
+            document.getElementById('ryanScore').textContent = scores.Ryan;
+            document.getElementById('ceciliaScore').textContent = scores.Cecilia;
+            document.getElementById('tiesScore').textContent = scores.Ties;
+            
+            const totalGames = scores.Ryan + scores.Cecilia + scores.Ties;
+            document.getElementById('totalGames').textContent = totalGames;
+            
+            const ryanWinRate = totalGames > 0 ? Math.round((scores.Ryan / totalGames) * 100) : 0;
+            const ceciliaWinRate = totalGames > 0 ? Math.round((scores.Cecilia / totalGames) * 100) : 0;
+            
+            document.getElementById('andreaWinRate').textContent = ryanWinRate + '%';
+            document.getElementById('maxWinRate').textContent = ceciliaWinRate + '%';
+        }
+
+        // Show game over modal
+        function showGameOverModal(message) {
+            document.getElementById('gameOverMessage').textContent = message;
+            document.getElementById('gameOverModal').style.display = 'block';
+            
+            // Auto close after 3 seconds
+            setTimeout(() => {
+                closeModal();
+            }, 3000);
+        }
+
+        // Close modal
+        function closeModal() {
+            document.getElementById('gameOverModal').style.display = 'none';
+            newGame();
+        }
+
+        // Start new game
+        function newGame() {
+            board = Array(9).fill(null);
+            gameActive = true;
+            currentPlayer = 'Ryan';
+            
+            const cells = document.querySelectorAll('.cell');
+            cells.forEach(cell => {
+                cell.innerHTML = '';
+                cell.className = 'cell';
+            });
+            
+            updatePlayerDisplay();
+        }
+
+        // Reset score
+        function resetScore() {
+            if (confirm('Are you sure you want to reset all scores?')) {
+                scores = { Ryan: 0, Cecilia: 0, Ties: 0 };
+                saveScores();
+                updateScoreDisplay();
+            }
+        }
+
+        // Initialize the game when page loads
+        document.addEventListener('DOMContentLoaded', initGame);
+    </script>
+</body>
+</html>
