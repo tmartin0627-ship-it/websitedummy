@@ -45,6 +45,14 @@ def generate_index_data():
             'change': 145.67,
             'change_percent': 0.38,
             'description': 'Dow Jones Industrial Average'
+        },
+        {
+            'name': 'DAX',
+            'symbol': 'DAX',
+            'value': 18456.32,
+            'change': -89.45,
+            'change_percent': -0.48,
+            'description': 'German Stock Index'
         }
     ]
 
@@ -78,12 +86,12 @@ def generate_historical_data(current_value, symbol, timeframe='1Y'):
     
     # Different volatility for different indices and timeframes
     volatility_map = {
-        '1D': {'SPX': 0.005, 'IXIC': 0.008, 'DJI': 0.004},
-        '1M': {'SPX': 0.015, 'IXIC': 0.025, 'DJI': 0.012},
-        '3M': {'SPX': 0.015, 'IXIC': 0.025, 'DJI': 0.012},
-        '1Y': {'SPX': 0.015, 'IXIC': 0.025, 'DJI': 0.012},
-        '5Y': {'SPX': 0.020, 'IXIC': 0.030, 'DJI': 0.015},
-        '10Y': {'SPX': 0.025, 'IXIC': 0.035, 'DJI': 0.018}
+        '1D': {'SPX': 0.005, 'IXIC': 0.008, 'DJI': 0.004, 'DAX': 0.007},
+        '1M': {'SPX': 0.015, 'IXIC': 0.025, 'DJI': 0.012, 'DAX': 0.020},
+        '3M': {'SPX': 0.015, 'IXIC': 0.025, 'DJI': 0.012, 'DAX': 0.020},
+        '1Y': {'SPX': 0.015, 'IXIC': 0.025, 'DJI': 0.012, 'DAX': 0.020},
+        '5Y': {'SPX': 0.020, 'IXIC': 0.030, 'DJI': 0.015, 'DAX': 0.025},
+        '10Y': {'SPX': 0.025, 'IXIC': 0.035, 'DJI': 0.018, 'DAX': 0.030}
     }
     
     volatility = volatility_map[timeframe].get(symbol, 0.015)
@@ -213,7 +221,7 @@ def index():
 
         .indices-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 32px;
             margin-bottom: 40px;
         }
@@ -480,7 +488,7 @@ def index():
 <body>
     <div class="container">
         <div class="header">
-            <h1 class="title">Market Indices</h1>
+            <h1 class="title">Global Market Indices</h1>
             <p class="subtitle">Track major market movements in real-time</p>
         </div>
         
