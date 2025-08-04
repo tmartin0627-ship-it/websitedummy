@@ -292,6 +292,18 @@
             from { opacity: 0; }
             to { opacity: 1; }
         }
+
+        .game-symbol {
+            transition: all 0.3s ease;
+        }
+        
+        .game-symbol.circle:hover {
+            transform: scale(1.05);
+        }
+        
+        .game-symbol.triangle:hover {
+            transform: scale(1.05);
+        }
     </style>
 </head>
 <body>
@@ -422,20 +434,34 @@
             // Make move
             board[index] = currentPlayer;
             
-            // Create image element
-            const img = document.createElement('img');
-            img.src = currentPlayer === 'Ryan' ? 'Ryan.png' : 'Cecilia.png';
-            img.alt = currentPlayer;
-            img.style.width = '120px';
-            img.style.height = '120px';
-            img.style.borderRadius = '50%';
-            img.style.objectFit = 'cover';
-            img.style.border = '3px solid rgba(255, 255, 255, 0.8)';
-            img.style.boxShadow = '0 4px 10px rgba(0, 0, 0, 0.3)';
+            // Create symbol element
+            const symbol = document.createElement('div');
+            symbol.className = 'game-symbol';
             
-            // Clear cell and add image
+            if (currentPlayer === 'Ryan') {
+                // Circle for Ryan
+                symbol.classList.add('circle');
+                symbol.style.width = '80px';
+                symbol.style.height = '80px';
+                symbol.style.borderRadius = '50%';
+                symbol.style.backgroundColor = '#e74c3c';
+                symbol.style.border = '4px solid #c0392b';
+            } else {
+                // Triangle for Cecilia
+                symbol.classList.add('triangle');
+                symbol.style.width = '0';
+                symbol.style.height = '0';
+                symbol.style.borderLeft = '40px solid transparent';
+                symbol.style.borderRight = '40px solid transparent';
+                symbol.style.borderBottom = '80px solid #3498db';
+                symbol.style.marginTop = '20px';
+            }
+            
+            symbol.style.boxShadow = '0 4px 10px rgba(0, 0, 0, 0.3)';
+            
+            // Clear cell and add symbol
             e.target.innerHTML = '';
-            e.target.appendChild(img);
+            e.target.appendChild(symbol);
             e.target.classList.add(currentPlayer.toLowerCase());
             
             // Add winner animation
@@ -480,11 +506,11 @@
             const playerText = document.getElementById('playerText');
             
             if (currentPlayer === 'Ryan') {
-                playerIcon.textContent = '🔴';
+                playerIcon.innerHTML = '<div style="width: 20px; height: 20px; border-radius: 50%; background-color: #e74c3c; border: 2px solid #c0392b; display: inline-block;"></div>';
                 playerText.textContent = 'Ryan\'s Turn';
                 playerText.style.color = '#e74c3c';
             } else {
-                playerIcon.textContent = '🔵';
+                playerIcon.innerHTML = '<div style="width: 0; height: 0; border-left: 10px solid transparent; border-right: 10px solid transparent; border-bottom: 20px solid #3498db; display: inline-block; margin-top: 2px;"></div>';
                 playerText.textContent = 'Cecilia\'s Turn';
                 playerText.style.color = '#3498db';
             }
