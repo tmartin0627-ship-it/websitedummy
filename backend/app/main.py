@@ -29,137 +29,60 @@ app.add_middleware(
     expose_headers=["*"]
 )
 
-MAKEUP_DATABASE = {
-    "lipstick": {
-        "name": "Rouge Dior Lipstick",
-        "brand": "Dior",
-        "shade": "999 Rouge Dior",
-        "ingredients": [
-            "Octyldodecanol",
-            "CI 77891 (Titanium Dioxide)",
-            "Synthetic Wax",
-            "CI 15850 (Red 7 Lake)",
-            "Polyglyceryl-2 Triisostearate",
-            "CI 77491 (Iron Oxides)",
-            "Hydrogenated Polyisobutene",
-            "Cera Alba (Beeswax)",
-            "CI 19140 (Yellow 5 Lake)",
-            "Parfum (Fragrance)",
-            "Tocopherol"
-        ],
-        "category": "Lip Color",
-        "source": "Dior Official Website - Product Ingredients",
-        "manufacturer_url": "https://www.dior.com",
-        "price_range": "$38-42",
-        "description": "Couture color lipstick with 16-hour wear"
-    },
-    "foundation": {
-        "name": "Double Wear Stay-in-Place Makeup",
-        "brand": "Estée Lauder",
-        "shade": "1W2 Sand",
-        "ingredients": [
-            "Water\\Aqua\\Eau",
-            "Cyclopentasiloxane",
-            "Trimethylsiloxysilicate",
-            "PEG-10 Dimethicone",
-            "Titanium Dioxide",
-            "Butylene Glycol",
-            "Arbutin",
-            "Sodium Chloride",
-            "Disteardimonium Hectorite",
-            "Phenoxyethanol",
-            "Iron Oxides (CI 77491, CI 77492, CI 77499)"
-        ],
-        "category": "Base Makeup",
-        "source": "Estée Lauder Official Website - INCI List",
-        "manufacturer_url": "https://www.esteelauder.com",
-        "price_range": "$52-58",
-        "description": "24-hour wear liquid foundation with medium-to-full coverage"
-    },
-    "eyeshadow": {
-        "name": "Naked3 Eyeshadow Palette",
-        "brand": "Urban Decay",
-        "shade": "Rose-Hued Neutrals",
-        "ingredients": [
-            "Talc",
-            "Zinc Stearate",
-            "Dimethicone",
-            "Octyldodecyl Stearoyl Stearate",
-            "Phenoxyethanol",
-            "Caprylyl Glycol",
-            "Mica",
-            "Titanium Dioxide (CI 77891)",
-            "Iron Oxides (CI 77491, CI 77492, CI 77499)",
-            "Ultramarines (CI 77007)",
-            "Carmine (CI 75470)"
-        ],
-        "category": "Eye Makeup",
-        "source": "Urban Decay Official Website - Product Details",
-        "manufacturer_url": "https://www.urbandecay.com",
-        "price_range": "$54-58",
-        "description": "12-shade eyeshadow palette with rose-hued neutral tones"
-    },
-    "mascara": {
-        "name": "Better Than Sex Mascara",
-        "brand": "Too Faced",
-        "shade": "Black",
-        "ingredients": [
-            "Water (Aqua)",
-            "Paraffin",
-            "Potassium Cetyl Phosphate",
-            "Beeswax (Cera Alba)",
-            "Carnauba Wax (Copernicia Cerifera)",
-            "Acacia Senegal Gum",
-            "Glycerin",
-            "Hydroxyethylcellulose",
-            "Iron Oxides (CI 77499)",
-            "Phenoxyethanol",
-            "Panthenol"
-        ],
-        "category": "Eye Makeup",
-        "source": "Too Faced Official Website - Ingredient List",
-        "manufacturer_url": "https://www.toofaced.com",
-        "price_range": "$27-29",
-        "description": "Volumizing and lengthening mascara with hourglass-shaped brush"
-    }
-}
 
 USER_PORTFOLIO = []
 
 def analyze_makeup_image(image: Image.Image) -> List[Dict[str, Any]]:
     """
     Analyze the image to detect makeup products using OpenAI Vision API.
-    More accurate than OpenCV and avoids memory issues.
+    Returns raw GPT-4 analysis with AI-identified ingredients.
     """
-    detected_products = []
-    
     try:
         if not openai.api_key:
-            return [MAKEUP_DATABASE["foundation"]]
+            return [{
+                "name": "Unknown Makeup Product",
+                "brand": "Unknown",
+                "type": "makeup",
+                "confidence": 0.5,
+                "description": "API key not available for detailed analysis",
+                "ingredients": ["Unable to analyze ingredients without API key"],
+                "source": "Fallback response"
+            }]
         
         img_buffer = io.BytesIO()
         image.thumbnail((1024, 1024), Image.Resampling.LANCZOS)
         image.save(img_buffer, format='JPEG', quality=85)
         img_base64 = base64.b64encode(img_buffer.getvalue()).decode()
         
-        prompt = """Analyze this image and identify any makeup products visible. 
-        
+        prompt = """Analyze this image and identify any makeup products visible. For each product you detect, provide detailed information including likely ingredients.
+
         Look specifically for:
         - Lipstick (red, pink, or colored lip products)
         - Foundation (liquid makeup, skin-tone products in bottles/tubes)
         - Mascara (dark eye makeup in tubes)
         - Eyeshadow (colored powders in palettes or compacts)
-        
+        - Blush, bronzer, concealer, or other makeup items
+
         Do NOT identify:
         - Skincare products (moisturizers, serums, cleansers)
         - General beauty tools
         - Non-makeup items
-        
-        Respond with a JSON array of detected makeup products. Each product should have:
-        - "type": one of "lipstick", "foundation", "mascara", "eyeshadow"
-        - "confidence": number from 0-1
-        - "description": brief description of what you see
-        
+
+        For each detected makeup product, respond with a JSON array containing objects with:
+        - "name": estimated product name or generic name
+        - "brand": estimated brand if visible, or "Unknown"
+        - "type": product category (lipstick, foundation, mascara, eyeshadow, etc.)
+        - "confidence": number from 0-1 indicating detection confidence
+        - "description": detailed description of what you see
+        - "ingredients": array of likely ingredients based on the product type (use common cosmetic ingredients)
+        - "source": "AI Analysis based on product type and visual characteristics"
+
+        For ingredients, include typical cosmetic ingredients for that product type. For example:
+        - Lipstick: waxes, oils, pigments, preservatives
+        - Foundation: water, silicones, pigments, emulsifiers
+        - Mascara: water, waxes, pigments, film formers
+        - Eyeshadow: talc, mica, pigments, binders
+
         If no makeup products are clearly visible, return an empty array []."""
         
         response = openai.chat.completions.create(
@@ -179,7 +102,7 @@ def analyze_makeup_image(image: Image.Image) -> List[Dict[str, Any]]:
                     ]
                 }
             ],
-            max_tokens=500,
+            max_tokens=1000,
             temperature=0.1
         )
         
@@ -188,36 +111,35 @@ def analyze_makeup_image(image: Image.Image) -> List[Dict[str, Any]]:
         try:
             detected_items = json.loads(response_text)
             
+            filtered_products = []
             for item in detected_items:
-                if item.get("confidence", 0) > 0.6:
-                    product_type = item.get("type")
-                    if product_type in MAKEUP_DATABASE:
-                        detected_products.append(MAKEUP_DATABASE[product_type])
+                if item.get("confidence", 0) > 0.3:  # Lower threshold for more results
+                    filtered_products.append(item)
+            
+            return filtered_products if filtered_products else []
         
         except json.JSONDecodeError:
-            response_lower = response_text.lower()
-            if "lipstick" in response_lower or "lip" in response_lower:
-                detected_products.append(MAKEUP_DATABASE["lipstick"])
-            if "foundation" in response_lower or "base makeup" in response_lower:
-                detected_products.append(MAKEUP_DATABASE["foundation"])
-            if "mascara" in response_lower or "eye makeup" in response_lower:
-                detected_products.append(MAKEUP_DATABASE["mascara"])
-            if "eyeshadow" in response_lower or "palette" in response_lower:
-                detected_products.append(MAKEUP_DATABASE["eyeshadow"])
-        
-        seen = set()
-        unique_products = []
-        for product in detected_products:
-            product_key = (product["name"], product["brand"])
-            if product_key not in seen:
-                seen.add(product_key)
-                unique_products.append(product)
-        
-        return unique_products
+            return [{
+                "name": "Detected Makeup Product",
+                "brand": "Unknown",
+                "type": "makeup",
+                "confidence": 0.7,
+                "description": response_text,
+                "ingredients": ["Analysis available in description"],
+                "source": "AI Text Analysis"
+            }]
         
     except Exception as api_error:
         print(f"OpenAI Vision API failed: {api_error}")
-        return [MAKEUP_DATABASE["foundation"]]
+        return [{
+            "name": "Analysis Error",
+            "brand": "Unknown",
+            "type": "error",
+            "confidence": 0.0,
+            "description": f"Error analyzing image: {str(api_error)}",
+            "ingredients": ["Unable to analyze due to error"],
+            "source": "Error response"
+        }]
 
 @app.get("/healthz")
 async def healthz():
@@ -240,17 +162,13 @@ async def analyze_makeup(file: UploadFile = File(...)):
         if not detected_products:
             detected_products = [
                 {
-                    "name": "General Makeup Product",
-                    "brand": "Unknown",
-                    "ingredients": [
-                        "Water (Aqua)",
-                        "Glycerin",
-                        "Dimethicone",
-                        "Titanium Dioxide",
-                        "Iron Oxides",
-                        "Phenoxyethanol"
-                    ],
-                    "category": "Cosmetic Product"
+                    "name": "No Makeup Products Detected",
+                    "brand": "N/A",
+                    "type": "none",
+                    "confidence": 0.0,
+                    "description": "No clear makeup products were identified in this image. Try uploading an image with visible makeup products like lipstick, foundation, mascara, or eyeshadow.",
+                    "ingredients": ["No products detected"],
+                    "source": "AI Analysis"
                 }
             ]
         
@@ -266,11 +184,35 @@ async def analyze_makeup(file: UploadFile = File(...)):
 @app.get("/products")
 async def get_all_products():
     """
-    Get all available makeup products in the database
+    Get sample makeup product types for reference
     """
+    sample_products = [
+        {
+            "name": "Sample Lipstick",
+            "type": "lipstick",
+            "description": "AI will analyze and identify actual products from uploaded images"
+        },
+        {
+            "name": "Sample Foundation", 
+            "type": "foundation",
+            "description": "AI will analyze and identify actual products from uploaded images"
+        },
+        {
+            "name": "Sample Mascara",
+            "type": "mascara", 
+            "description": "AI will analyze and identify actual products from uploaded images"
+        },
+        {
+            "name": "Sample Eyeshadow",
+            "type": "eyeshadow",
+            "description": "AI will analyze and identify actual products from uploaded images"
+        }
+    ]
+    
     return {
         "success": True,
-        "products": list(MAKEUP_DATABASE.values())
+        "products": sample_products,
+        "note": "These are sample product types. Upload images for AI analysis of actual products."
     }
 
 @app.post("/portfolio/add")
