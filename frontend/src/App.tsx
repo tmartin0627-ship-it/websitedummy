@@ -1,11 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
 import { Camera, Upload, Loader2, Eye, Package, FolderOpen, Plus, Trash2, ExternalLink } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Input } from '@/components/ui/input'
 import './App.css'
 
 interface MakeupProduct {
@@ -50,6 +44,7 @@ function App() {
     brand: '',
     category: ''
   })
+  const [apiKey, setApiKey] = useState<string>('')
   const fileInputRef = useRef<HTMLInputElement>(null)
   const portfolioFileRef = useRef<HTMLInputElement>(null)
 
@@ -69,12 +64,18 @@ function App() {
   const analyzeImage = async () => {
     if (!selectedImage || !fileInputRef.current?.files?.[0]) return
 
+    if (!apiKey.trim()) {
+      setError('Please enter your OpenAI API key to analyze makeup products.')
+      return
+    }
+
     setIsAnalyzing(true)
     setError(null)
 
     try {
       const formData = new FormData()
       formData.append('file', fileInputRef.current.files[0])
+      formData.append('api_key', apiKey)
 
       const response = await fetch('https://app-prhccbfu.fly.dev/analyze-makeup', {
         method: 'POST',
@@ -221,6 +222,23 @@ function App() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
+              <div className="space-y-3">
+                <label htmlFor="api-key" className="block text-sm font-medium text-gray-700">
+                  OpenAI API Key
+                </label>
+                <input
+                  id="api-key"
+                  type="password"
+                  placeholder="Enter your OpenAI API key (sk-...)"
+                  value={apiKey}
+                  onChange={(e) => setApiKey(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <p className="text-xs text-gray-500">
+                  Your API key is used only for this analysis and is not stored.
+                </p>
+              </div>
+              
               <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
                 {selectedImage ? (
                   <div className="space-y-4">

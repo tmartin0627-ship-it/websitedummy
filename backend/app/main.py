@@ -1,4 +1,4 @@
-from fastapi import FastAPI, File, UploadFile, HTTPException
+from fastapi import FastAPI, File, UploadFile, HTTPException, Form
 from fastapi.middleware.cors import CORSMiddleware
 import psycopg
 from PIL import Image
@@ -32,13 +32,15 @@ app.add_middleware(
 
 USER_PORTFOLIO = []
 
-def analyze_makeup_image(image: Image.Image) -> List[Dict[str, Any]]:
+def analyze_makeup_image(image: Image.Image, api_key: str = None) -> List[Dict[str, Any]]:
     """
     Analyze the image to detect makeup products using OpenAI Vision API.
     Returns raw GPT-4 analysis with AI-identified ingredients.
     """
     try:
-        if not openai.api_key:
+        current_api_key = api_key or openai.api_key
+        
+        if not current_api_key:
             return [{
                 "name": "Unknown Makeup Product",
                 "brand": "Unknown",
@@ -85,8 +87,10 @@ def analyze_makeup_image(image: Image.Image) -> List[Dict[str, Any]]:
 
         If no makeup products are clearly visible, return an empty array []."""
         
-        response = openai.chat.completions.create(
-            model="gpt-4-vision-preview",
+        client = openai.OpenAI(api_key=current_api_key)
+        
+        response = client.chat.completions.create(
+            model="gpt-4o",
             messages=[
                 {
                     "role": "user",
@@ -146,7 +150,7 @@ async def healthz():
     return {"status": "ok"}
 
 @app.post("/analyze-makeup")
-async def analyze_makeup(file: UploadFile = File(...)):
+async def analyze_makeup(file: UploadFile = File(...), api_key: str = Form(None)):
     """
     Analyze uploaded makeup photo and return detected products with ingredients
     """
@@ -157,7 +161,7 @@ async def analyze_makeup(file: UploadFile = File(...)):
         contents = await file.read()
         image = Image.open(io.BytesIO(contents))
         
-        detected_products = analyze_makeup_image(image)
+        detected_products = analyze_makeup_image(image, api_key)
         
         if not detected_products:
             detected_products = [
